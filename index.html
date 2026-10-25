@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stacy Peptides</title>
+<meta name="description" content="Stacy Peptides — laboratoire indépendant. La boutique est sur Telegram.">
+<meta name="theme-color" content="#0D0412">
+<meta property="og:title" content="Stacy Peptides">
+<meta property="og:description" content="Laboratoire indépendant — la boutique est sur Telegram.">
+<meta property="og:image" content="img/pack.jpg">
+<link rel="icon" href="img/logo_hw_toile.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Newsreader:opsz,wght@6..72,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #0D0412; --s1: #170A22; --s2: #1E0F2C; --s3: #281636;
+    --t1: #F4F0EB; --t2: rgba(244,240,235,.72); --t3: rgba(244,240,235,.5);
+    --edge: rgba(229,169,60,.18); --accent: #E5A93C; --ink: #1A0B12;
+    --grad: linear-gradient(135deg, #F6C766 0%, #E5A93C 45%, #D9781E 100%);
+    --tg: #2AABEE;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    --serif: "Newsreader", ui-serif, Georgia, serif;
+    --ease: cubic-bezier(.16, 1, .3, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: var(--void); }
+  body { min-height: 100vh; color: var(--t1); font-family: var(--sans); -webkit-font-smoothing: antialiased;
+         background: radial-gradient(110% 45% at 30% 0%, rgba(229,169,60,.13), transparent 60%),
+                     radial-gradient(90% 50% at 80% 100%, rgba(139,92,246,.12), transparent 60%), var(--void); }
+  .fond { position: fixed; inset: 0; background: url(img/fond.jpg) center top / cover no-repeat; opacity: .16; z-index: 0;
+          mask-image: linear-gradient(to bottom, #000, transparent 70%); pointer-events: none; }
+  main { position: relative; z-index: 1; max-width: 460px; margin: 0 auto; padding: 46px 16px 36px; }
+
+  .monte { opacity: 0; transform: translateY(16px); animation: monte .8s var(--ease) forwards; }
+  @keyframes monte { to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .monte { animation: none; opacity: 1; transform: none; } }
+
+  /* profil */
+  .profil { text-align: center; }
+  .avatar { width: 116px; height: 116px; border-radius: 50%; margin: 0 auto; padding: 4px; background: var(--grad);
+            box-shadow: 0 16px 50px rgba(217,120,30,.35); }
+  .avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; border: 3px solid var(--void); }
+  .pseudo { margin-top: 16px; font-weight: 800; font-size: 25px; letter-spacing: -.3px; }
+  .verif { display: inline-block; width: 19px; height: 19px; vertical-align: -2px; margin-left: 4px; }
+  .bio { margin-top: 6px; color: var(--t2); font-size: 14.5px; line-height: 1.45; }
+  .reseaux { display: flex; justify-content: center; gap: 12px; margin-top: 18px; }
+  .reseaux a { width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; color: var(--t1);
+               background: rgba(30,15,44,.8); border: 1px solid rgba(255,255,255,.1); transition: transform .25s var(--ease); }
+  .reseaux a:active { transform: scale(.92); }
+  .reseaux svg { width: 22px; height: 22px; }
+
+  /* rubriques */
+  .rub { margin: 34px 0 14px; text-align: center; font-weight: 800; font-size: 15px; letter-spacing: 2.4px; text-transform: uppercase; }
+  .rub em { font-style: normal; display: inline-block; animation: pointe 1.6s ease-in-out infinite; }
+  @keyframes pointe { 50% { transform: translateY(4px); } }
+
+  /* cartes */
+  .carte { position: relative; display: flex; align-items: stretch; min-height: 132px; border-radius: 22px; overflow: hidden;
+           text-decoration: none; color: var(--t1); background: linear-gradient(180deg, rgba(40,22,54,.92), rgba(23,10,34,.92));
+           border: 1px solid var(--edge); box-shadow: 0 18px 50px rgba(0,0,0,.45); transition: transform .25s var(--ease); }
+  .carte + .carte { margin-top: 12px; }
+  .carte:active { transform: scale(.975); }
+  .carte .vis { flex: none; width: 38%; position: relative; overflow: hidden; }
+  .carte .vis img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .carte .vis.tg { background: var(--tg); display: grid; place-items: center; }
+  .carte .vis.tg svg { width: 64px; height: 64px; color: #fff; }
+  .carte .vis.canal { background: radial-gradient(120% 120% at 30% 20%, #3A1F4F, #170A22); display: grid; place-items: center; }
+  .carte .vis.canal svg { width: 58px; height: 58px; color: var(--accent); }
+  .carte .vis.tk { background: #000; display: grid; place-items: center; }
+  .carte .vis.tk svg { width: 54px; height: 54px; color: #fff; filter: drop-shadow(2px 2px 0 #FE2C55) drop-shadow(-2px -2px 0 #25F4EE); }
+  .carte .txt { flex: 1; padding: 16px 14px 16px 18px; display: flex; flex-direction: column; justify-content: center; }
+  .carte b { font-size: 18.5px; font-weight: 800; letter-spacing: -.2px; line-height: 1.2; }
+  .carte span { margin-top: 5px; font-size: 13.5px; color: var(--t2); line-height: 1.35; }
+  .carte .fl { flex: none; display: grid; place-items: center; padding-right: 16px; color: var(--t3); font-size: 22px; }
+  /* la carte principale : dorée, avec un reflet qui passe */
+  .carte.or { background: var(--grad); color: var(--ink); border: none; box-shadow: 0 18px 50px rgba(217,120,30,.4); }
+  .carte.or span { color: rgba(26,11,18,.75); } .carte.or .fl { color: var(--ink); }
+  .carte.or::after { content: ""; position: absolute; top: 0; bottom: 0; width: 35%; left: -50%; transform: skewX(-18deg);
+                     background: linear-gradient(100deg, transparent, rgba(255,255,255,.5), transparent); animation: reflet 4.5s var(--ease) 1.4s infinite; }
+  @keyframes reflet { 0% { left: -50%; } 30%, 100% { left: 130%; } }
+  .badge { display: inline-block; align-self: flex-start; margin-bottom: 7px; padding: 3px 9px; border-radius: 999px; font-size: 11px;
+           font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; background: var(--ink); color: var(--accent); }
+
+  /* atouts en ligne */
+  .atouts { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .atouts div { padding: 9px 13px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--t1);
+                background: rgba(30,15,44,.8); border: 1px solid rgba(255,255,255,.08); }
+
+  footer { margin-top: 34px; text-align: center; color: var(--t3); font-size: 11.5px; line-height: 1.6; }
+  footer button { margin-top: 12px; background: none; border: 1px solid rgba(255,255,255,.14); color: var(--t2); font: inherit;
+                  font-size: 12px; padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="fond"></div>
+<main>
+  <section class="profil monte">
+    <div class="avatar"><img src="img/logo_hw_toile.jpg" alt="Stacy Peptides"></div>
+    <div class="pseudo">Stacy Peptides</div>
+    <div class="reseaux">
+      <a href="https://www.tiktok.com/@ratdelabo47" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 3c.3 2.2 1.7 3.8 4 4v3.1a7.3 7.3 0 0 1-4-1.3v6.4A5.8 5.8 0 1 1 10.8 9.4v3.2a2.7 2.7 0 1 0 2.7 2.7V3h3.1Z"/></svg></a>
+      <a href="https://t.me/StacyLabEu" rel="noopener" aria-label="Canal Telegram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 18.8 19c-.2 1-.8 1.3-1.7.8l-4.6-3.4-2.2 2.1c-.3.3-.5.5-1 .5l.3-4.7 8.6-7.8c.4-.3-.1-.5-.6-.2L7 13l-4.6-1.4c-1-.3-1-1 .2-1.5L20.5 3c.8-.3 1.6.2 1.4 1.3Z"/></svg></a>
+    </div>
+  </section>
+
+  <div class="rub monte" style="animation-delay:.12s"><em>👇</em> <span data-t="r1">La boutique</span> <em>👇</em></div>
+  <a class="carte or monte" style="animation-delay:.18s" href="https://t.me/StacyPepsBot" rel="noopener">
+    <div class="vis"><img src="img/pack.jpg" alt="" style="object-position:50% 40%"></div>
+    <div class="txt"><i class="badge" data-t="badge">Édition Halloween</i><b data-t="c1">Ouvrir la boutique</b><span data-t="c1s">Packs, flacons à l'unité · sur Telegram</span></div>
+    <div class="fl">›</div>
+  </a>
+  <a class="carte monte" style="animation-delay:.24s" href="https://t.me/StacyLabEu" rel="noopener">
+    <div class="vis canal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></div>
+    <div class="txt"><b data-t="c2">Rejoindre le canal</b><span data-t="c2s">Nouveautés, restocks et codes promo en premier</span><span style="opacity:.6">t.me/StacyLabEu</span></div>
+    <div class="fl">›</div>
+  </a>
+
+  <div class="rub monte" style="animation-delay:.3s"><em>👇</em> <span data-t="r2">Support</span> <em>👇</em></div>
+  <a class="carte monte" style="animation-delay:.36s" href="https://t.me/StacyPep" rel="noopener">
+    <div class="vis tg"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 18.8 19c-.2 1-.8 1.3-1.7.8l-4.6-3.4-2.2 2.1c-.3.3-.5.5-1 .5l.3-4.7 8.6-7.8c.4-.3-.1-.5-.6-.2L7 13l-4.6-1.4c-1-.3-1-1 .2-1.5L20.5 3c.8-.3 1.6.2 1.4 1.3Z"/></svg></div>
+    <div class="txt"><b data-t="c3">Une question ?</b><span data-t="c3s">On te répond directement</span><span style="opacity:.6">t.me/StacyPep</span></div>
+    <div class="fl">›</div>
+  </a>
+
+  <div class="rub monte" style="animation-delay:.54s"><em>👇</em> <span data-t="r4">Pourquoi nous</span> <em>👇</em></div>
+  <div class="atouts monte" style="animation-delay:.6s">
+    <div data-t="t1">📦 Livraison avec suivi</div><div data-t="t2">⭐ Programme fidélité</div>
+    <div data-t="t5">🏷️ Prix bas</div><div data-t="t3">💸 Packs moins chers</div><div data-t="t4">⚡ Réponse rapide</div>
+  </div>
+
+  <footer>
+    <p data-t="legal">Produits destinés exclusivement à la recherche en laboratoire. Ne convient pas à la consommation humaine.</p>
+    <p>© Stacy Peptides</p>
+    <button id="lang">English</button>
+  </footer>
+</main>
+<script>
+  const EN = { bio: "Independent lab · research peptides 🧪", r1: "The shop", badge: "Halloween edition", c1: "Open the shop",
+    c1s: "Bundles, single vials · on Telegram", c2: "Join the channel", c2s: "New drops, restocks and promo codes first",
+    r2: "Support", c3: "Got a question?", c3s: "We answer you directly", r3: "Our videos", c4: "The lab rat 🐀", r4: "Why us",
+    t1: "📦 Tracked delivery", t2: "⭐ Loyalty program", t3: "💸 Cheaper bundles", t4: "⚡ Fast replies", t5: "🏷️ Low prices",
+    legal: "Products intended exclusively for laboratory research. Not for human consumption." };
+  const FR = {}; document.querySelectorAll("[data-t]").forEach(e => FR[e.dataset.t] = e.textContent);
+  let en = false;
+  const bascule = v => { en = v; const d = en ? EN : FR;
+    document.querySelectorAll("[data-t]").forEach(e => { if (d[e.dataset.t]) e.textContent = d[e.dataset.t]; });
+    document.documentElement.lang = en ? "en" : "fr"; document.getElementById("lang").textContent = en ? "Français" : "English";
+    try { localStorage.setItem("sr_lang", en ? "en" : "fr"); } catch (e) {} };
+  let pref = null; try { pref = localStorage.getItem("sr_lang"); } catch (e) {}
+  bascule(pref ? pref === "en" : !/^fr/i.test(navigator.language || "fr"));
+  document.getElementById("lang").onclick = () => bascule(!en);
+</script>
+</body>
+</html>
