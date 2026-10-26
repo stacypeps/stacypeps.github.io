@@ -65,12 +65,18 @@
   <h2>Clics par bouton</h2>
   <div id="boutons"></div>
 
+  <h2>Par compte TikTok</h2>
+  <div id="comptes"></div>
+  <p class="note" style="margin-top:8px">Compte FR : mets <b>stacypeps.github.io/fr</b> dans la bio · compte anglais : <b>stacypeps.github.io/en</b>.
+    TikTok ne donne jamais le pseudo des gens qui cliquent : on sait seulement de quel compte ils viennent.</p>
+
   <h2>D'où viennent les visiteurs</h2>
   <div id="sources"></div>
 
   <div class="moi"><button id="moi"></button><span id="moi-txt"></span></div>
   <p class="note">Compteur anonyme : pas de cookie, aucune donnée personnelle. Une visite = une ouverture de la page
-    (quelqu'un qui revient est recompté). Les chiffres d'aujourd'hui suivent l'heure UTC.</p>
+    (quelqu'un qui revient est recompté). Tes visites ne comptent pas depuis l'icône de ton écran d'accueil ;
+    dans un autre navigateur (Safari, TikTok…), ouvre une fois <b>stacypeps.github.io/?moi</b> pour qu'il ne te compte plus. Les chiffres d'aujourd'hui suivent l'heure UTC.</p>
   <p class="err" id="err"></p>
 </main>
 <script>
@@ -85,9 +91,10 @@
   async function charge() {
     const jours = [...Array(14)].map((_, i) => { const d = new Date(Date.now() - (13 - i) * 864e5);
       return { k: d.toISOString().slice(0, 10).replace(/-/g, ""), lab: d.getUTCDate() }; });
-    const [visites, bt, src, jv, jc] = await Promise.all([lit("visites"),
+    const [visites, bt, src, jv, jc, cpt] = await Promise.all([lit("visites"),
       Promise.all(BOUTONS.map(b => lit("clic-" + b[0]))), Promise.all(SOURCES.map(s => lit(s[0]))),
-      Promise.all(jours.map(j => lit("j" + j.k))), Promise.all(jours.map(j => lit("c" + j.k)))]);
+      Promise.all(jours.map(j => lit("j" + j.k))), Promise.all(jours.map(j => lit("c" + j.k))), Promise.all(["fr", "en"].map(l => lit("lien-" + l)))]);
+    barres(document.getElementById("comptes"), [["🇫🇷 Rat 47 (FR)", cpt[0]], ["🇺🇸 Rat 48 (EN)", cpt[1]]]);
     const total = bt.reduce((a, b) => a + b, 0);
     document.getElementById("visites").textContent = visites;
     document.getElementById("boutique").textContent = bt[0];

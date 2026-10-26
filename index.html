@@ -158,7 +158,8 @@
     document.documentElement.lang = en ? "en" : "fr"; document.getElementById("lang").textContent = en ? "Français" : "English";
     try { localStorage.setItem("sr_lang", en ? "en" : "fr"); } catch (e) {} };
   let pref = null; try { pref = localStorage.getItem("sr_lang"); } catch (e) {}
-  bascule(pref ? pref === "en" : !/^fr/i.test(navigator.language || "fr"));
+  const viaLang = new URLSearchParams(location.search).get("s");
+  bascule(viaLang === "en" ? true : viaLang === "fr" ? false : pref ? pref === "en" : !/^fr/i.test(navigator.language || "fr"));
   document.getElementById("lang").onclick = () => bascule(!en);
 
   // Navigateur interne (TikTok, Instagram...) : Android -> lien intent qui ouvre l'app Telegram directement ;
@@ -180,10 +181,18 @@
   // Compteur anonyme (aucun cookie, aucune donnee perso) : visites et clics, lus par stats.html.
   // Les visites de Stacy (appareil marque depuis stats.html) ne sont pas comptees.
   const NS = "https://abacus.jasoncameron.dev/hit/stacypeps-bio/";
-  let moi = false; try { moi = localStorage.getItem("sr_moi") === "1"; } catch (e) {}
+  // Pas compte : appareil marque (stats.html ou lien ?moi), ou page ouverte depuis l'ecran d'accueil (= Stacy).
+  // Sur iPhone, l'icone de l'ecran d'accueil a sa propre memoire : le bouton de stats.html ne la marque pas.
+  const q = new URLSearchParams(location.search);
+  try { if (q.has("moi")) q.get("moi") === "0" ? localStorage.removeItem("sr_moi") : localStorage.setItem("sr_moi", "1"); } catch (e) {}
+  let moi = q.has("moi") && q.get("moi") !== "0"; try { moi = moi || localStorage.getItem("sr_moi") === "1"; } catch (e) {}
+  if (navigator.standalone || matchMedia("(display-mode: standalone)").matches) moi = true;
+  // lien par compte TikTok : stacypeps.github.io/fr ou /en (redirige ici avec ?s=fr / ?s=en)
+  const via = /^(fr|en)$/.test(q.get("s") || "") ? q.get("s") : null;
+  if (q.has("s") || q.has("moi")) history.replaceState(null, "", location.pathname);
   const compte = k => { if (!moi) fetch(NS + k, { keepalive: true, mode: "no-cors" }).catch(() => {}); };
   const jour = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-  compte("visites"); compte("j" + jour);
+  compte("visites"); compte("j" + jour); if (via) compte("lien-" + via);
   compte(/musical_ly|Bytedance|TikTok/i.test(ua) ? "src-tiktok" : /Instagram|FBAN|FBAV/i.test(ua) ? "src-insta" : "src-autre");
   document.querySelectorAll("a[data-k]").forEach(a => a.addEventListener("click", () => {
     compte("clic-" + a.dataset.k); compte("c" + jour); }));
