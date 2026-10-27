@@ -168,6 +168,11 @@
   const dansApp = /musical_ly|Bytedance|TikTok|Instagram|FBAN|FBAV/i.test(ua);
   const android = /Android/i.test(ua);
   if (dansApp) document.documentElement.classList.add("dans-app");
+  // le bot sait de quel compte TikTok vient le client : startapp=bio_fr / bio_en (garde pendant la visite)
+  let viaApp = new URLSearchParams(location.search).get("s");
+  try { if (/^(fr|en)$/.test(viaApp || "")) sessionStorage.setItem("sr_via", viaApp); else viaApp = sessionStorage.getItem("sr_via"); } catch (e) {}
+  if (/^(fr|en)$/.test(viaApp || "")) document.querySelectorAll("a[data-app]").forEach(a => {
+    a.dataset.app = "bio_" + viaApp; a.href = a.href.replace(/startapp=[\w-]+/, "startapp=bio_" + viaApp); });
   document.querySelectorAll("a[data-tg]").forEach(a => {
     const nom = a.dataset.tg, app = a.dataset.app;
     if (dansApp && android) {
