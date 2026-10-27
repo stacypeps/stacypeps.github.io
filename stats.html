@@ -52,7 +52,7 @@
 
   <h2>Total</h2>
   <div class="grille">
-    <div class="tuile"><b id="visites">–</b><span>visites</span></div>
+    <div class="tuile"><b id="visites">–</b><span>visiteurs</span></div>
     <div class="tuile or"><b id="boutique">–</b><span>clics « Ouvrir la boutique »</span></div>
     <div class="tuile"><b id="taux">–</b><span>des visiteurs cliquent sur la boutique</span></div>
     <div class="tuile"><b id="clics">–</b><span>clics au total</span></div>
@@ -74,13 +74,13 @@
   <div id="sources"></div>
 
   <div class="moi"><button id="moi"></button><span id="moi-txt"></span></div>
-  <p class="note">Compteur anonyme : pas de cookie, aucune donnée personnelle. Une visite = une ouverture de la page
-    (quelqu'un qui revient est recompté). Tes visites ne comptent pas depuis l'icône de ton écran d'accueil ;
-    dans un autre navigateur (Safari, TikTok…), ouvre une fois <b>stacypeps.github.io/?moi</b> pour qu'il ne te compte plus. Les chiffres d'aujourd'hui suivent l'heure UTC.</p>
+  <p class="note">Compteur anonyme, sans cookie. Une personne compte <b>une fois par jour</b>, même si elle recharge la page.
+    Pour ne plus être compté sur un téléphone ou un navigateur (même celui de TikTok) : ouvre ta page et <b>appuie 5 fois vite sur le logo</b>.
+    Un message confirme. Compteurs remis à zéro le 27/10.</p>
   <p class="err" id="err"></p>
 </main>
 <script>
-  const API = "https://abacus.jasoncameron.dev/get/stacypeps-bio/";
+  const API = "https://abacus.jasoncameron.dev/get/stacypeps-bio2/";
   const lit = k => fetch(API + k).then(r => r.ok ? r.json() : { value: 0 }).then(d => d.value > 0 ? d.value : 0).catch(() => 0);
   const BOUTONS = [["boutique", "🛍️ Boutique"], ["canal", "📣 Canal"], ["support", "💬 Support"], ["tiktok", "🎵 TikTok"]];
   const SOURCES = [["src-tiktok", "TikTok"], ["src-insta", "Instagram"], ["src-autre", "Navigateur / autre"]];

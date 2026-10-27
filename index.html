@@ -99,6 +99,8 @@
   .inapp .fleche { position: absolute; right: 14px; top: 8px; font-size: 26px; animation: vers 1.1s ease-in-out infinite; }
   @keyframes vers { 50% { transform: translate(3px, -4px); } }
   html.dans-app .inapp { display: block; }
+  .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 20; padding: 12px 18px; border-radius: 999px;
+           background: #F4F0EB; color: #1A0B12; font-size: 14px; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,.5); white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -185,7 +187,7 @@
 
   // Compteur anonyme (aucun cookie, aucune donnee perso) : visites et clics, lus par stats.html.
   // Les visites de Stacy (appareil marque depuis stats.html) ne sont pas comptees.
-  const NS = "https://abacus.jasoncameron.dev/hit/stacypeps-bio/";
+  const NS = "https://abacus.jasoncameron.dev/hit/stacypeps-bio2/";   // compteurs remis a zero le 2026-10-27
   // Pas compte : appareil marque (stats.html ou lien ?moi), ou page ouverte depuis l'ecran d'accueil (= Stacy).
   // Sur iPhone, l'icone de l'ecran d'accueil a sa propre memoire : le bouton de stats.html ne la marque pas.
   const q = new URLSearchParams(location.search);
@@ -197,10 +199,27 @@
   if (q.has("s") || q.has("moi")) history.replaceState(null, "", location.pathname);
   const compte = k => { if (!moi) fetch(NS + k, { keepalive: true, mode: "no-cors" }).catch(() => {}); };
   const jour = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-  compte("visites"); compte("j" + jour); if (via) compte("lien-" + via);
-  compte(/musical_ly|Bytedance|TikTok/i.test(ua) ? "src-tiktok" : /Instagram|FBAN|FBAV/i.test(ua) ? "src-insta" : "src-autre");
+  // une personne = une visite par jour (et un clic par bouton par jour), meme si elle recharge la page 10 fois
+  const vu = k => { try { const c = "sr_vu_" + k; if (localStorage.getItem(c) === jour) return true;
+    localStorage.setItem(c, jour); } catch (e) {} return false; };
+  if (!vu("page")) {
+    compte("visites"); compte("j" + jour); if (via) compte("lien-" + via);
+    compte(/musical_ly|Bytedance|TikTok/i.test(ua) ? "src-tiktok" : /Instagram|FBAN|FBAV/i.test(ua) ? "src-insta" : "src-autre");
+  }
   document.querySelectorAll("a[data-k]").forEach(a => a.addEventListener("click", () => {
-    compte("clic-" + a.dataset.k); compte("c" + jour); }));
+    if (!vu("clic-" + a.dataset.k)) { compte("clic-" + a.dataset.k); compte("c" + jour); } }));
+
+  // 5 appuis rapides sur le logo = « c'est moi » : cet appareil / ce navigateur (meme celui de TikTok) n'est plus compte
+  let tapes = 0, minuteur;
+  document.querySelector(".avatar").addEventListener("click", () => {
+    tapes++; clearTimeout(minuteur); minuteur = setTimeout(() => tapes = 0, 1500);
+    if (tapes < 5) return; tapes = 0;
+    let m = false; try { m = localStorage.getItem("sr_moi") === "1"; m ? localStorage.removeItem("sr_moi") : localStorage.setItem("sr_moi", "1"); } catch (e) {}
+    moi = !m;
+    const t = document.createElement("div"); t.className = "toast";
+    t.textContent = moi ? "✓ Tes visites ne sont plus comptées ici" : "Tes visites sont de nouveau comptées ici";
+    document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
+  });
 </script>
 </body>
 </html>
