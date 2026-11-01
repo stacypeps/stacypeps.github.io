@@ -130,7 +130,7 @@
   // file de lecture : 3 requetes en parallele maximum
   async function litTout(cles, avance) {
     const res = {}; let i = 0, faits = 0;
-    const ouvrier = async () => { while (i < cles.length) { const k = cles[i++]; res[k] = await lit1(k); avance(++faits / cles.length); } };
+    const ouvrier = async () => { while (i < cles.length) { const k = cles[i++]; res[k] = await lit1(k); avance(++faits / cles.length, k, res[k]); } };
     await Promise.all([ouvrier(), ouvrier(), ouvrier()]);
     return res;
   }
@@ -177,7 +177,11 @@
     const vivants = new Set(js.slice(12).flatMap(j => ["j" + j.k, "c" + j.k]));
     const cles = ["visites", ...BOUTONS.map(b => "clic-" + b[0]), ...SOURCES.map(s => s[0]), "lien-fr", "lien-en",
       ...js.flatMap(j => ["j" + j.k, "c" + j.k]).filter(k => vivants.has(k) || !memo.fige[k])];
-    const res = await litTout(cles, p => prog.firstElementChild.style.width = Math.max(4, p * 100) + "%");
+    let tic = 0;
+    const res = await litTout(cles, (p, k, v) => {
+      prog.firstElementChild.style.width = Math.max(4, p * 100) + "%";
+      if (v != null) { memo.v[k] = v; if (Date.now() - tic > 250) { tic = Date.now(); affiche(); } }   // chiffres au fil de l'eau
+    });
     let rates = 0;
     for (const [k, v] of Object.entries(res)) {
       if (v == null) { rates++; continue; }
