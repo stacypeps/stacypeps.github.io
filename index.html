@@ -187,7 +187,8 @@
 
   // Compteur anonyme (aucun cookie, aucune donnee perso) : visites et clics, lus par stats.html.
   // Les visites de Stacy (appareil marque depuis stats.html) ne sont pas comptees.
-  const NS = "https://abacus.jasoncameron.dev/hit/stacypeps-bio2/";   // compteurs remis a zero le 2026-10-27
+  // compteurs sur le serveur de la boutique (Abacus, l'ancien compteur gratuit, etait lent et saturait)
+  const NS = "https://worker-production-ce7b.up.railway.app/api/bio/hit?k=";
   // Pas compte : appareil marque (stats.html ou lien ?moi), ou page ouverte depuis l'ecran d'accueil (= Stacy).
   // Sur iPhone, l'icone de l'ecran d'accueil a sa propre memoire : le bouton de stats.html ne la marque pas.
   const q = new URLSearchParams(location.search);
@@ -197,17 +198,17 @@
   // lien par compte TikTok : stacypeps.github.io/fr ou /en (redirige ici avec ?s=fr / ?s=en)
   const via = /^(fr|en)$/.test(q.get("s") || "") ? q.get("s") : null;
   if (q.has("s") || q.has("moi")) history.replaceState(null, "", location.pathname);
-  const compte = k => { if (!moi) fetch(NS + k, { keepalive: true, mode: "no-cors" }).catch(() => {}); };
+  const compte = (...k) => { if (!moi) fetch(NS + k.join(","), { keepalive: true, mode: "no-cors" }).catch(() => {}); };
   const jour = new Date().toISOString().slice(0, 10).replace(/-/g, "");
   // une personne = une visite par jour (et un clic par bouton par jour), meme si elle recharge la page 10 fois
   const vu = k => { try { const c = "sr_vu_" + k; if (localStorage.getItem(c) === jour) return true;
     localStorage.setItem(c, jour); } catch (e) {} return false; };
   if (!vu("page")) {
-    compte("visites"); compte("j" + jour); if (via) compte("lien-" + via);
-    compte(/musical_ly|Bytedance|TikTok/i.test(ua) ? "src-tiktok" : /Instagram|FBAN|FBAV/i.test(ua) ? "src-insta" : "src-autre");
+    const src = /musical_ly|Bytedance|TikTok/i.test(ua) ? "src-tiktok" : /Instagram|FBAN|FBAV/i.test(ua) ? "src-insta" : "src-autre";
+    compte("visites", src, ...(via ? ["lien-" + via] : []));
   }
   document.querySelectorAll("a[data-k]").forEach(a => a.addEventListener("click", () => {
-    if (!vu("clic-" + a.dataset.k)) { compte("clic-" + a.dataset.k); compte("c" + jour); } }));
+    if (!vu("clic-" + a.dataset.k)) compte("clic-" + a.dataset.k); }));
 
   // 5 appuis rapides sur le logo = « c'est moi » : cet appareil / ce navigateur (meme celui de TikTok) n'est plus compte
   let tapes = 0, minuteur;

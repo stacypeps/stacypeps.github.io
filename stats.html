@@ -63,7 +63,6 @@
     <div><h1>Stats page bio</h1><p class="sous" id="maj">Chargement…</p></div>
     <button id="actu" aria-label="Actualiser"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg>Actualiser</button>
   </div>
-  <div class="prog" id="prog"><i></i></div>
 
   <h2>Aujourd'hui</h2>
   <div class="grille">
@@ -97,116 +96,68 @@
   <div class="moi"><button id="moi"></button><span id="moi-txt"></span></div>
   <p class="note">Compteur anonyme, sans cookie. Une personne compte <b>une fois par jour</b>, même si elle recharge la page.
     Pour ne plus être compté sur un téléphone ou un navigateur (même celui de TikTok) : ouvre ta page et <b>appuie 5 fois vite sur le logo</b>.
-    Un message confirme. Compteurs remis à zéro le 27/10.</p>
+    Un message confirme. Chiffres depuis le 27/10.</p>
   <p class="err" id="err"></p>
 </main>
 <script>
-  // Le compteur gratuit (Abacus) refuse les rafales (429 au-dela de ~30 requetes d'un coup) : on lit donc 3 cles a la
-  // fois, on reessaie en cas de refus, on garde en memoire les jours passes (ils ne bougent plus) et on affiche tout
-  // de suite les derniers chiffres connus. Une cle qui echoue garde son ancienne valeur au lieu de tomber a 0.
-  const API = "https://abacus.jasoncameron.dev/get/stacypeps-bio2/";
+  // Une seule requete au serveur de la boutique : tous les chiffres d'un coup. Les derniers chiffres connus sont
+  // gardes sur l'appareil et affiches des l'ouverture, avant meme la reponse.
+  const API = "https://worker-production-ce7b.up.railway.app/api/bio/stats";
   const BOUTONS = [["boutique", "🛍️ Boutique"], ["canal", "📣 Canal"], ["support", "💬 Support"], ["tiktok", "🎵 TikTok"]];
   const SOURCES = [["src-tiktok", "TikTok"], ["src-insta", "Instagram"], ["src-autre", "Navigateur / autre"]];
   const $ = id => document.getElementById(id);
-  const CACHE = "sr_stats_v2";
-  let memo = {}; try { memo = JSON.parse(localStorage.getItem(CACHE) || "{}"); } catch (e) {}
-  memo.v = memo.v || {}; memo.fige = memo.fige || {};
-  const sauve = () => { try { localStorage.setItem(CACHE, JSON.stringify(memo)); } catch (e) {} };
-  const attends = ms => new Promise(r => setTimeout(r, ms));
-
-  async function lit1(k) {
-    for (let essai = 0; essai < 5; essai++) {
-      try {
-        const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 8000);
-        const r = await fetch(API + k, { signal: ctl.signal, cache: "no-store" }); clearTimeout(to);
-        if (r.status === 404) return 0;                       // cle jamais touchee (ou expiree) = 0
-        if (r.ok) { const d = await r.json(); return d.value > 0 ? d.value : 0; }
-      } catch (e) {}                                          // 429 sans en-tete CORS = erreur reseau : on reessaie
-      await attends(700 * 2 ** essai + Math.random() * 300);
-    }
-    return null;                                              // echec : on garde l'ancienne valeur
-  }
-
-  // file de lecture : 3 requetes en parallele maximum
-  async function litTout(cles, avance) {
-    const res = {}; let i = 0, faits = 0;
-    const ouvrier = async () => { while (i < cles.length) { const k = cles[i++]; res[k] = await lit1(k); avance(++faits / cles.length, k, res[k]); } };
-    await Promise.all([ouvrier(), ouvrier(), ouvrier()]);
-    return res;
-  }
-
-  const jours = () => [...Array(14)].map((_, i) => { const d = new Date(Date.now() - (13 - i) * 864e5);
-    return { k: d.toISOString().slice(0, 10).replace(/-/g, ""), lab: d.getUTCDate() }; });
-  const val = k => memo.v[k] ?? null;
-  const n = k => val(k) ?? 0;
+  const CACHE = "sr_stats_v3";
+  let memo = null; try { memo = JSON.parse(localStorage.getItem(CACHE) || "null"); } catch (e) {}
 
   const barres = (el, rows) => { const max = Math.max(1, ...rows.map(r => r[1]));
     if (el.children.length !== rows.length) el.innerHTML = rows.map(([nom]) => `<div class="ligne"><span class="nom">${nom}</span>
       <span class="barre"><i style="width:0"></i></span><span class="n">–</span></div>`).join("");
     rows.forEach(([, v], i) => { const l = el.children[i]; l.querySelector("i").style.width = v / max * 100 + "%"; l.querySelector(".n").textContent = v; }); };
 
-  function affiche() {
-    const js = jours(), auj = js[13].k;
-    const tuile = (id, v) => { $(id).textContent = v ?? "–"; $(id).parentNode.classList.toggle("vide", v == null); };
-    const bt = BOUTONS.map(b => n("clic-" + b[0])), total = bt.reduce((a, b) => a + b, 0);
-    tuile("visites", val("visites")); tuile("boutique", val("clic-boutique")); tuile("clics", val("visites") == null ? null : total);
-    tuile("taux", val("visites") ? Math.round(bt[0] / n("visites") * 100) + " %" : null);
-    tuile("v-auj", val("j" + auj)); tuile("c-auj", val("c" + auj));
+  function affiche(d) {
+    const t = d.total, js = d.jours, auj = js[js.length - 1];
+    const tuile = (id, v) => { $(id).textContent = v; $(id).parentNode.classList.remove("vide"); };
+    const bt = BOUTONS.map(b => t["clic-" + b[0]] || 0), total = bt.reduce((a, b) => a + b, 0);
+    tuile("visites", t.visites); tuile("boutique", bt[0]); tuile("clics", total);
+    tuile("taux", t.visites ? Math.round(bt[0] / t.visites * 100) + " %" : "–");
+    tuile("v-auj", auj.visites); tuile("c-auj", auj.clics);
     barres($("boutons"), BOUTONS.map((b, i) => [b[1], bt[i]]));
-    barres($("sources"), SOURCES.map(s => [s[1], n(s[0])]));
-    barres($("comptes"), [["🇫🇷 Rat 47 (FR)", n("lien-fr")], ["🇺🇸 Rat 48 (EN)", n("lien-en")]]);
-    const jv = js.map(j => n("j" + j.k)), jc = js.map(j => n("c" + j.k)), max = Math.max(1, ...jv, ...jc), el = $("jours");
-    if (el.children.length !== 14 || el.dataset.auj !== auj) {
-      el.dataset.auj = auj;
+    barres($("sources"), SOURCES.map(s => [s[1], t[s[0]] || 0]));
+    barres($("comptes"), [["🇫🇷 Rat 47 (FR)", t["lien-fr"] || 0], ["🇺🇸 Rat 48 (EN)", t["lien-en"] || 0]]);
+    const max = Math.max(1, ...js.map(j => Math.max(j.visites, j.clics))), el = $("jours");
+    if (el.dataset.auj !== auj.jour) {
+      el.dataset.auj = auj.jour;
       el.innerHTML = js.map(j => `<div><em></em><div style="display:flex;gap:2px;width:100%;align-items:flex-end;flex:1">
-        <span class="b" style="height:0"></span><span class="b c" style="height:0"></span></div><small>${j.lab}</small></div>`).join("");
+        <span class="b" style="height:0"></span><span class="b c" style="height:0"></span></div><small>${+j.jour.slice(8)}</small></div>`).join("");
     }
     js.forEach((j, i) => { const c = el.children[i], b = c.querySelectorAll(".b");
-      c.querySelector("em").textContent = jv[i] || ""; b[0].style.height = jv[i] / max * 100 + "%"; b[1].style.height = jc[i] / max * 100 + "%";
-      b[0].title = jv[i] + " visites"; b[1].title = jc[i] + " clics"; });
+      c.querySelector("em").textContent = j.visites || ""; b[0].style.height = j.visites / max * 100 + "%"; b[1].style.height = j.clics / max * 100 + "%";
+      b[0].title = j.visites + " visites"; b[1].title = j.clics + " clics"; });
   }
 
   const heure = ts => new Date(ts).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
   let enCours = false;
   async function charge() {
-    if (enCours) return; enCours = true;
-    const bouton = $("actu"), prog = $("prog"); bouton.classList.add("tourne"); prog.classList.add("on");
-    prog.firstElementChild.style.width = "4%";
-    const js = jours();
-    // les jours d'avant-hier et plus anciens ne changent plus : lus une seule fois puis gardes
-    const vivants = new Set(js.slice(12).flatMap(j => ["j" + j.k, "c" + j.k]));
-    const cles = ["visites", ...BOUTONS.map(b => "clic-" + b[0]), ...SOURCES.map(s => s[0]), "lien-fr", "lien-en",
-      ...js.flatMap(j => ["j" + j.k, "c" + j.k]).filter(k => vivants.has(k) || !memo.fige[k])];
-    let tic = 0;
-    const res = await litTout(cles, (p, k, v) => {
-      prog.firstElementChild.style.width = Math.max(4, p * 100) + "%";
-      if (v != null) { memo.v[k] = v; if (Date.now() - tic > 250) { tic = Date.now(); affiche(); } }   // chiffres au fil de l'eau
-    });
-    let rates = 0;
-    for (const [k, v] of Object.entries(res)) {
-      if (v == null) { rates++; continue; }
-      memo.v[k] = v; if (/^[jc]\d{8}$/.test(k) && !vivants.has(k)) memo.fige[k] = 1;
+    if (enCours) return; enCours = true; $("actu").classList.add("tourne");
+    try {
+      const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 10000);
+      const r = await fetch(API, { cache: "no-store", signal: ctl.signal }); clearTimeout(to);
+      if (!r.ok) throw new Error(r.status);
+      memo = { d: await r.json(), ts: Date.now() };
+      try { localStorage.setItem(CACHE, JSON.stringify(memo)); } catch (e) {}
+      affiche(memo.d); $("maj").textContent = "À jour · " + heure(memo.ts); $("err").textContent = "";
+    } catch (e) {
+      $("err").textContent = memo ? "Pas de réseau : derniers chiffres de " + heure(memo.ts) + "." : "Pas de réseau, réessaie dans un instant.";
     }
-    // menage : on oublie les jours sortis de la fenetre des 14 jours
-    const garde = new Set(js.flatMap(j => ["j" + j.k, "c" + j.k]));
-    for (const k of Object.keys(memo.v)) if (/^[jc]\d{8}$/.test(k) && !garde.has(k)) { delete memo.v[k]; delete memo.fige[k]; }
-    if (rates < cles.length) memo.ts = Date.now();
-    sauve(); affiche();
-    $("maj").textContent = memo.ts ? "Mis à jour à " + heure(memo.ts) : "Pas de connexion au compteur";
-    $("err").textContent = rates ? `${rates} chiffre${rates > 1 ? "s" : ""} pas encore relu${rates > 1 ? "s" : ""} (compteur saturé) : dernière valeur connue affichée, nouvel essai dans 1 min.` : "";
-    if (rates) setTimeout(charge, 60000);
-    bouton.classList.remove("tourne"); prog.classList.remove("on"); setTimeout(() => prog.firstElementChild.style.width = "0", 300);
-    enCours = false;
+    $("actu").classList.remove("tourne"); enCours = false;
   }
 
-  // affichage immediat des derniers chiffres connus, puis relecture
-  affiche();
-  if (memo.ts) $("maj").textContent = "Derniers chiffres de " + heure(memo.ts) + " · actualisation…";
+  if (memo) { affiche(memo.d); $("maj").textContent = "Chiffres de " + heure(memo.ts) + " · actualisation…"; }
   $("actu").onclick = charge;
   charge();
-  // actualisation toutes les 2 min tant que la page est ouverte, et au retour sur l'onglet
-  setInterval(() => { if (!document.hidden) charge(); }, 120000);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - (memo.ts || 0) > 30000) charge(); });
+  // en direct : toutes les 20 s tant que la page est a l'ecran, et des qu'on revient dessus
+  setInterval(() => { if (!document.hidden) charge(); }, 20000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) charge(); });
 
   // « C'est mon téléphone » : tes propres visites ne sont plus comptées sur cet appareil.
   const moiBtn = document.getElementById("moi");
