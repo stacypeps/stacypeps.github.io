@@ -115,6 +115,26 @@
   background:rgba(143,211,255,.12);border:1px dashed rgba(143,211,255,.45);color:inherit}
 .astuce-tg b{color:#8FD3FF}
 .astuce-tg u{text-decoration:none;font-weight:700;background:#2AABEE;color:#fff;border-radius:6px;padding:1px 7px}
+
+/* aide « Telegram ne s'est pas ouvert ? » */
+.aide{position:fixed;inset:0;z-index:30;display:none;align-items:flex-end;justify-content:center;background:rgba(5,8,18,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.aide.on{display:flex;animation:aideFond .25s ease}
+@keyframes aideFond{from{opacity:0}}
+.aide .feuille{width:100%;max-width:440px;margin:0 10px 10px;padding:22px 18px 18px;border-radius:24px;background:#141A2E;border:1px solid rgba(143,211,255,.25);
+  box-shadow:0 -10px 40px rgba(0,0,0,.5);color:#F3F5FA;animation:aideMonte .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes aideMonte{from{transform:translateY(40px);opacity:0}}
+.aide h3{font-size:19px;font-weight:800;margin:0 0 4px}
+.aide .s{font-size:13.5px;color:rgba(243,245,250,.7);margin:0 0 14px;line-height:1.45}
+.aide ol{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.aide li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;font-size:14.5px;line-height:1.4}
+.aide li i{font-style:normal;width:28px;height:28px;border-radius:50%;background:#2AABEE;color:#fff;font-weight:800;display:grid;place-items:center;font-size:14px}
+.aide li small{display:block;color:rgba(243,245,250,.6);font-size:12.5px;margin-top:2px}
+.aide .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.aide .btns a{flex:1;min-width:130px;text-align:center;padding:11px 12px;border-radius:14px;background:#fff;color:#0B1020;font-weight:800;font-size:14px;text-decoration:none}
+.aide .go{display:block;margin-top:16px;padding:14px;border-radius:16px;text-align:center;font-weight:800;font-size:15.5px;text-decoration:none;color:#fff;
+  background:linear-gradient(135deg,#3FB8F5,#1E8FD6);box-shadow:0 8px 24px rgba(42,171,238,.35)}
+.aide .ferme{display:block;margin:10px auto 0;background:none;border:0;color:rgba(243,245,250,.55);font:inherit;font-size:13px;padding:6px}
+.aide .deja{margin-top:14px;padding:10px 12px;border-radius:12px;background:rgba(143,211,255,.1);font-size:13px;line-height:1.45;color:rgba(243,245,250,.8)}
 </style>
 </head>
 <body>
@@ -163,6 +183,18 @@
     <button id="lang">English</button>
   </footer>
 </main>
+<div class="aide" id="aide" role="dialog" aria-modal="true"><div class="feuille">
+  <h3 data-t="a0">Telegram ne s'est pas ouvert ?</h3>
+  <p class="s" data-t="a1">La boutique est sur Telegram, une appli gratuite comme WhatsApp. Ça prend 2 minutes :</p>
+  <ol>
+    <li><i>1</i><div><span data-t="a2">Installe Telegram</span><div class="btns" id="stores"></div></div></li>
+    <li><i>2</i><div><span data-t="a3">Ouvre-le et crée ton compte</span><small data-t="a4">Juste ton numéro de téléphone, un code arrive par SMS</small></div></li>
+    <li><i>3</i><div><span data-t="a5">Reviens ici et appuie sur le bouton bleu</span><small data-t="a6">Puis appuie sur « Démarrer » en bas de la discussion</small></div></li>
+  </ol>
+  <div class="deja" id="deja" hidden><b data-t="a7">Tu as déjà Telegram ?</b> <span data-t="a8">Appuie sur ⋯ en haut à droite, puis « Ouvrir dans le navigateur ».</span></div>
+  <a class="go" id="aide-go" href="https://t.me/StacyPepsBot?start=bio" data-t="a9">Ouvrir la boutique sur Telegram</a>
+  <button class="ferme" id="aide-x" data-t="a10">Fermer</button>
+</div></div>
 <script>
   const EN = { bio: "Independent lab · research peptides 🧪", r1: "The shop", badge: "Winter edition ❄️", c1: "Open the shop",
     c1s: "Bundles, single vials · on Telegram", c2: "Join the channel", c2s: "New drops, restocks and promo codes first",
@@ -200,6 +232,35 @@
     }
   });
   EN.ia = "To open Telegram: tap ⋯ at the top right"; EN.ia2 = "then “Open in browser”"; EN.h1 = "Tap “Open the shop”"; EN.h2 = "On Telegram, tap"; EN.h3 = "Start"; EN.h4 = "at the bottom";
+  bascule(en);
+
+  // Aide pour ceux qui n'ont pas Telegram : si la page est toujours à l'écran 2,5 s après le clic
+  // (Telegram ne s'est pas ouvert) ou si la personne revient sur la page, on explique comment l'installer.
+  Object.assign(EN, { a0: "Telegram didn't open?", a1: "The shop is on Telegram, a free app like WhatsApp. It takes 2 minutes:",
+    a2: "Install Telegram", a3: "Open it and create your account", a4: "Just your phone number, a code arrives by SMS",
+    a5: "Come back here and tap the blue button", a6: "Then tap “Start” at the bottom of the chat",
+    a7: "Already have Telegram?", a8: "Tap ⋯ at the top right, then “Open in browser”.", a9: "Open the shop on Telegram", a10: "Close" });
+  const ios = /iPhone|iPad|iPod/i.test(ua);
+  const STORES = { ios: ["App Store", "https://apps.apple.com/app/telegram-messenger/id686449807"],
+    android: ["Google Play", dansApp && android ? "intent://details?id=org.telegram.messenger#Intent;scheme=market;package=com.android.vending;S.browser_fallback_url=" + encodeURIComponent("https://play.google.com/store/apps/details?id=org.telegram.messenger") + ";end" : "https://play.google.com/store/apps/details?id=org.telegram.messenger"],
+    pc: ["Ordinateur", "https://desktop.telegram.org"] };
+  document.getElementById("stores").innerHTML = (ios ? ["ios"] : android ? ["android"] : ["ios", "android", "pc"])
+    .map(k => `<a href="${STORES[k][1]}" rel="noopener" target="_blank">${STORES[k][0]}</a>`).join("");
+  if (dansApp && ios) document.getElementById("deja").hidden = false;
+  const boutiqueA = document.querySelector('a[data-k="boutique"]'), aide = document.getElementById("aide");
+  document.getElementById("aide-go").href = boutiqueA.href;
+  const montreAide = () => { aide.classList.add("on"); };
+  document.getElementById("aide-x").onclick = () => aide.classList.remove("on");
+  aide.addEventListener("click", e => { if (e.target === aide) aide.classList.remove("on"); });
+  let clicA = 0, minuteurAide;
+  const surClic = () => { clicA = Date.now(); clearTimeout(minuteurAide);
+    minuteurAide = setTimeout(() => { if (!document.hidden) montreAide(); }, 2500); };
+  boutiqueA.addEventListener("click", surClic);
+  document.getElementById("aide-go").addEventListener("click", surClic);
+  // la page part en arrière-plan = Telegram s'est ouvert : pas d'aide à ce moment-là
+  document.addEventListener("visibilitychange", () => { if (document.hidden) clearTimeout(minuteurAide); });
+  // retour sur la page (bouton retour depuis la page t.me) : on propose l'aide
+  addEventListener("pageshow", e => { if (e.persisted && clicA && Date.now() - clicA < 15 * 60000) montreAide(); });
   bascule(en);
 
   // Compteur anonyme (aucun cookie, aucune donnee perso) : visites et clics, lus par stats.html.
