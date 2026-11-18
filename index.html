@@ -128,7 +128,7 @@
   </section>
 
   <div class="rub monte" style="animation-delay:.12s"><em>👇</em> <span data-t="r1">La boutique</span> <em>👇</em></div>
-  <a class="carte or monte" style="animation-delay:.18s" href="https://t.me/StacyPepsBot?startapp=bio" data-tg="StacyPepsBot" data-app="bio" data-k="boutique" rel="noopener">
+  <a class="carte or monte" style="animation-delay:.18s" href="https://t.me/StacyPepsBot?start=bio" data-tg="StacyPepsBot" data-app="bio" data-k="boutique" rel="noopener">
     <div class="vis"><img src="img/pack_hv.jpg" alt="" style="object-position:50% 55%"></div>
     <div class="txt"><i class="badge" data-t="badge">Édition hiver ❄️</i><b data-t="c1">Ouvrir la boutique</b><span data-t="c1s">Packs, flacons à l'unité · sur Telegram</span></div>
     <div class="fl">›</div>
@@ -181,15 +181,16 @@
   const dansApp = /musical_ly|Bytedance|TikTok|Instagram|FBAN|FBAV/i.test(ua);
   const android = /Android/i.test(ua);
   if (dansApp) document.documentElement.classList.add("dans-app");
-  // le bot sait de quel compte TikTok vient le client : startapp=bio_fr / bio_en (garde pendant la visite)
+  // le bouton ouvre la discussion avec le bot (start=bio_fr / bio_en) : en appuyant sur « Démarrer »,
+  // le client devient joignable (suivi de commande) ; le bot sait de quel compte TikTok il vient
   let viaApp = new URLSearchParams(location.search).get("s");
   try { if (/^(fr|en)$/.test(viaApp || "")) sessionStorage.setItem("sr_via", viaApp); else viaApp = sessionStorage.getItem("sr_via"); } catch (e) {}
   if (/^(fr|en)$/.test(viaApp || "")) document.querySelectorAll("a[data-app]").forEach(a => {
-    a.dataset.app = "bio_" + viaApp; a.href = a.href.replace(/startapp=[\w-]+/, "startapp=bio_" + viaApp); });
+    a.dataset.app = "bio_" + viaApp; a.href = a.href.replace(/start=[\w-]+/, "start=bio_" + viaApp); });
   document.querySelectorAll("a[data-tg]").forEach(a => {
     const nom = a.dataset.tg, app = a.dataset.app;
     if (dansApp && android) {
-      const q = app ? `domain=${nom}&startapp=${app}` : `domain=${nom}`;
+      const q = app ? `domain=${nom}&start=${app}` : `domain=${nom}`;
       a.href = `intent://resolve?${q}#Intent;scheme=tg;package=org.telegram.messenger;S.browser_fallback_url=${encodeURIComponent(a.href)};end`;
     }
   });
