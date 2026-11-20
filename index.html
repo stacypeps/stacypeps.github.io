@@ -275,7 +275,7 @@
   if (navigator.standalone || matchMedia("(display-mode: standalone)").matches) moi = true;
   // lien par compte TikTok : stacypeps.github.io/fr ou /en (redirige ici avec ?s=fr / ?s=en)
   const via = /^(fr|en)$/.test(q.get("s") || "") ? q.get("s") : null;
-  if (q.has("s") || q.has("moi")) history.replaceState(null, "", location.pathname);
+
   const compte = (...k) => { if (!moi) fetch(NS + k.join(","), { keepalive: true, mode: "no-cors" }).catch(() => {}); };
   const jour = new Date().toISOString().slice(0, 10).replace(/-/g, "");
   // une personne = une visite par jour (et un clic par bouton par jour), meme si elle recharge la page 10 fois
@@ -285,9 +285,16 @@
   // chaine et dans les descriptions) ou par la page d'ou l'on vient. Gardee pour la session : les clics sont rattaches a l'appli.
   let appli = q.get("s") === "yt" || /(^|\.)(youtube\.com|youtu\.be)$/i.test((() => { try { return new URL(document.referrer).hostname; } catch (e) { return ""; } })()) ? "youtube"
     : /musical_ly|Bytedance|TikTok/i.test(ua) ? "tiktok" : /Instagram|FBAN|FBAV/i.test(ua) ? "insta" : null;
+  // Ouvert dans le navigateur depuis TikTok/Insta (« ⋯ > Ouvrir dans le navigateur ») : l'adresse garde ?a=<appli>.
+  // La personne reste rangee dans son appli et sa visite (deja comptee dans l'appli) n'est pas recomptee.
+  const hop = !appli && /^(tiktok|insta|youtube)$/.test(q.get("a") || "") ? q.get("a") : null;
+  appli = appli || hop;
   try { if (appli) sessionStorage.setItem("sr_appli", appli); else appli = sessionStorage.getItem("sr_appli"); } catch (e) {}
   appli = appli || "autre";
-  if (!vu("page")) compte("visites", "src-" + appli, ...(via ? ["lien-" + via] : []));
+  if (hop) vu("page");
+  else if (!vu("page")) compte("visites", "src-" + appli, ...(via ? ["lien-" + via] : []));
+  if (q.has("s") || q.has("moi") || q.has("a") || appli !== "autre")
+    history.replaceState(null, "", location.pathname + (appli !== "autre" ? "?a=" + appli : ""));
   document.querySelectorAll("a[data-k]").forEach(a => a.addEventListener("click", () => {
     if (!vu("clic-" + a.dataset.k)) compte("clic-" + a.dataset.k, "app-" + appli + "-" + a.dataset.k); }));
 
