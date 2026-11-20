@@ -87,6 +87,12 @@
   .jours .b.c { background: linear-gradient(180deg, #7FD3FF, #2AABEE); box-shadow: 0 0 10px rgba(42,171,238,.35); }
   button { background: rgba(255,255,255,.06); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
   .prog i { box-shadow: 0 0 10px var(--accent); }
+  .appli { margin-bottom: 10px; padding: 14px 16px; }
+  .appli h3 { font-size: 16px; font-weight: 800; margin-bottom: 10px; }
+  .appli .ch { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .appli .ch b { display: block; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .appli .ch span { font-size: 11.5px; color: var(--t3); }
+  .appli .det { margin-top: 8px; font-size: 12px; color: var(--t3); }
 </style>
 </head>
 <body>
@@ -134,6 +140,11 @@
   <h2>D'où viennent les visiteurs</h2>
   <div id="sources"></div>
 
+  <h2>Par appli</h2>
+  <div id="applis"></div>
+  <p class="note" style="margin-top:8px">Clics par appli comptés depuis le 20/11. YouTube : mets le lien <b>1jour1peps.pages.dev/?s=yt</b>
+    sur la chaîne et dans les descriptions, sinon certains visiteurs YouTube tombent dans « Navigateur / autre ».</p>
+
   <div class="moi"><button id="moi"></button><span id="moi-txt"></span></div>
   <p class="note">Compteur anonyme, sans cookie. Une personne compte <b>une fois par jour</b>, même si elle recharge la page.
     Pour ne plus être compté sur un téléphone ou un navigateur (même celui de TikTok) : ouvre ta page et <b>appuie 5 fois vite sur le logo</b>.
@@ -145,7 +156,8 @@
   // gardes sur l'appareil et affiches des l'ouverture, avant meme la reponse.
   const API = "https://worker-production-ce7b.up.railway.app/api/bio/stats";
   const BOUTONS = [["boutique", "🛍️ Boutique"], ["canal", "📣 Canal"], ["support", "💬 Support"], ["tiktok", "🎵 TikTok"]];
-  const SOURCES = [["src-tiktok", "TikTok"], ["src-insta", "Instagram"], ["src-autre", "Navigateur / autre"]];
+  const SOURCES = [["src-tiktok", "TikTok"], ["src-insta", "Instagram"], ["src-youtube", "YouTube"], ["src-autre", "Navigateur / autre"]];
+  const APPLIS = [["tiktok", "🎵 TikTok"], ["insta", "📸 Instagram"], ["youtube", "▶️ YouTube"], ["autre", "🌐 Navigateur / autre"]];
   const $ = id => document.getElementById(id);
   const CACHE = "sr_stats_v3";
   let memo = null; try { memo = JSON.parse(localStorage.getItem(CACHE) || "null"); } catch (e) {}
@@ -173,6 +185,13 @@
     }
     barres($("boutons"), BOUTONS.map((b, i) => [b[1], bt[i]]));
     barres($("sources"), SOURCES.map(s => [s[1], t[s[0]] || 0]));
+    $("applis").innerHTML = APPLIS.map(([a, nom]) => {
+      const c = b => t[`app-${a}-${b}`] || 0, v = t["src-" + a] || 0, bq = c("boutique");
+      const autres = c("canal") + c("support") + c("tiktok");
+      return `<div class="tuile appli"><h3>${nom}</h3><div class="ch">
+        <div><b>${v}</b><span>visites</span></div><div><b>${bq}</b><span>boutique</span></div>
+        <div><b>${autres}</b><span>autres clics</span></div>
+        </div><div class="det">📣 canal ${c("canal")} · 💬 support ${c("support")} · 🎵 TikTok ${c("tiktok")}</div></div>`; }).join("");
     barres($("comptes"), [["🇫🇷 Rat 47 (FR)", t["lien-fr"] || 0], ["🇺🇸 Rat 48 (EN)", t["lien-en"] || 0]]);
     const max = Math.max(1, ...js.map(j => Math.max(j.visites, j.clics))), el = $("jours");
     if (el.dataset.auj !== auj.jour) {

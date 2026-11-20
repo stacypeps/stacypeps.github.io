@@ -281,12 +281,15 @@
   // une personne = une visite par jour (et un clic par bouton par jour), meme si elle recharge la page 10 fois
   const vu = k => { try { const c = "sr_vu_" + k; if (localStorage.getItem(c) === jour) return true;
     localStorage.setItem(c, jour); } catch (e) {} return false; };
-  if (!vu("page")) {
-    const src = /musical_ly|Bytedance|TikTok/i.test(ua) ? "src-tiktok" : /Instagram|FBAN|FBAV/i.test(ua) ? "src-insta" : "src-autre";
-    compte("visites", src, ...(via ? ["lien-" + via] : []));
-  }
+  // appli d'origine : TikTok / Instagram par le navigateur interne ; YouTube par le lien ?s=yt (a mettre sur la
+  // chaine et dans les descriptions) ou par la page d'ou l'on vient. Gardee pour la session : les clics sont rattaches a l'appli.
+  let appli = q.get("s") === "yt" || /(^|\.)(youtube\.com|youtu\.be)$/i.test((() => { try { return new URL(document.referrer).hostname; } catch (e) { return ""; } })()) ? "youtube"
+    : /musical_ly|Bytedance|TikTok/i.test(ua) ? "tiktok" : /Instagram|FBAN|FBAV/i.test(ua) ? "insta" : null;
+  try { if (appli) sessionStorage.setItem("sr_appli", appli); else appli = sessionStorage.getItem("sr_appli"); } catch (e) {}
+  appli = appli || "autre";
+  if (!vu("page")) compte("visites", "src-" + appli, ...(via ? ["lien-" + via] : []));
   document.querySelectorAll("a[data-k]").forEach(a => a.addEventListener("click", () => {
-    if (!vu("clic-" + a.dataset.k)) compte("clic-" + a.dataset.k); }));
+    if (!vu("clic-" + a.dataset.k)) compte("clic-" + a.dataset.k, "app-" + appli + "-" + a.dataset.k); }));
 
   // 5 appuis rapides sur le logo = « c'est moi » : cet appareil / ce navigateur (meme celui de TikTok) n'est plus compte
   let tapes = 0, minuteur;
